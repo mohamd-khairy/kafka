@@ -1,0 +1,42 @@
+version: "3"
+services:
+    zookeeper:
+        image: wurstmeister/zookeeper
+        ports:
+            - 2181:2181
+        networks:
+          - broker-kafka
+
+    kafka:
+        image: wurstmeister/kafka
+        ports:
+            - 9092:9092
+            - 29092:29092
+        environment:
+            KAFKA_ADVERTISED_HOST_NAME: kafka
+            # KAFKA_CREATE_TOPICS: "test:1:1"
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092
+            KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+            KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - broker-kafka
+
+    kafdrop:
+        image: obsidiandynamics/kafdrop
+        ports:
+            - "9000:9000"
+        environment:
+            KAFKA_BROKERCONNECT: kafka:29092
+            JVM_OPTS: -Xmx512m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Djava.security.egd=file:/dev/./urandom
+        depends_on:
+            - kafka
+        networks:
+            - broker-kafka
+
+networks:
+  broker-kafka:
+    external: true

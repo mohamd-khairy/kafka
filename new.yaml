@@ -88,3 +88,13 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+
+  activemq:
+    image: rmohr/activemq:latest
+    container_name: activemq
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: admin
+      ACTIVEMQ_ADMIN_PASSWORD: admin
+    ports:
+      - "61613:61613"
+      - "8161:8161"
